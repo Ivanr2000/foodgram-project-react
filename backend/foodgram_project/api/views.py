@@ -193,8 +193,7 @@ class DownloadShoppingCart(APIView):
                 f'{value["measurement_unit"]}\n'
             )
 
-        response = HttpResponse(shopping_list, {
+        return HttpResponse(shopping_list, {
             'Content-Type': 'text/plain',
             'Content-Disposition': 'attachment; filename="shopping_list.txt"',
         })
-        return response
