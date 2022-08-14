@@ -1,8 +1,9 @@
-from django.contrib import admin
 from django.conf.urls.static import static
-from django.urls import path, include
+from django.contrib import admin
+from django.urls import include, path
 
-from foodgram_project.settings import STATIC_URL, STATIC_ROOT
+from foodgram_project.settings import STATIC_ROOT, STATIC_URL
+
 # from foodgram_project.settings import DEBUG
 
 urlpatterns = [

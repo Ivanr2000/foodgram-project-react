@@ -2,11 +2,9 @@ import csv
 import os
 
 from django.core.management.base import BaseCommand
-
-from recipe.models import (UnitOfMeasurement, Ingredient)
 from foodgram_project.settings import BASE_DIR
+from recipe.models import Ingredient, UnitOfMeasurement
 
-# path_to_data = '..//..//data'
 path_to_data = ''
 
 TABLES = {
