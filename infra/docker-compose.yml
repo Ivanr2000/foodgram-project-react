@@ -1,13 +1,6 @@
 version: '3.3'
 services:
 
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ../frontend/:/app/result_build/
-
   db:
     image: postgres:13.0-alpine
     volumes:
@@ -15,8 +8,15 @@ services:
     env_file:
       - ./.env
 
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ../frontend/:/app/result_build/
+
   web:
-    build: ../backend
+    build: ../backend/foodgram_project
     restart: always
     ports:
       - "8000:8000"
@@ -25,6 +25,8 @@ services:
       - media_value:/app/media/
     depends_on:
       - db
+    env_file:
+      - ./.env
 
   nginx:
     image: nginx:1.19.3

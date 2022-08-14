@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.conf.urls.static import static
 from django.urls import path, include
 
-from foodgram_project.settings import DEBUG, STATIC_URL, STATIC_ROOT
+from foodgram_project.settings import STATIC_URL, STATIC_ROOT
+# from foodgram_project.settings import DEBUG
 
 urlpatterns = [
     path('admin/', admin.site.urls),

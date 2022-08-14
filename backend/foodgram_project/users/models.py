@@ -68,6 +68,9 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.email
 
+    def get_full_name(self):
+        return f'{self.first_name}  {self.last_name}'
+
     def get_group_permissions(self, obj=None):
         return set()
 
@@ -82,3 +85,7 @@ class CustomUser(AbstractUser):
 
     def has_module_perms(self, app_label):
         return True
+
+    @property
+    def is_admin(self):
+        return self.is_superuser

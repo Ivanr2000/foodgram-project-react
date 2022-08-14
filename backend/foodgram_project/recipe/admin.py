@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .models import (Ingredient, Recipe, RecipeIngredient, RecipeTag, Tag,
-                     UnitOfMeasurement)
+from .models import (Favorites, Follow, Ingredient, Recipe, RecipeIngredient,
+                     RecipeTag, ShoppingCart, Tag, UnitOfMeasurement)
 
 
 class UnitOfMeasurementAdmin(admin.ModelAdmin):
@@ -47,10 +47,14 @@ class RecipeAdmin(admin.ModelAdmin):
                     'image',
                     'text',
                     'author',
-                    'cooking_time',)
+                    'cooking_time',
+                    'favorites_count',)
     search_fields = ('name', 'author', 'ingredients',)
-    list_filter = ('name', 'ingredients', 'tags', 'author', )
+    list_filter = ('name', 'tags', 'author', )
     empty_value_display = '-пусто-'
+
+    def favorites_count(self, obj):
+        return obj.favorites.count()
 
 
 class RecipeIngredientAdmin(admin.ModelAdmin):
@@ -71,9 +75,36 @@ class RecipeTagAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+class FavoritesAdmin(admin.ModelAdmin):
+    list_display = ('pk',
+                    'user',
+                    'recipe',)
+    search_fields = ('user', 'recipe')
+    empty_value_display = '-пусто-'
+
+
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('pk',
+                    'user',
+                    'author',)
+    search_fields = ('user', 'author',)
+    empty_value_display = '-пусто-'
+
+
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = ('pk',
+                    'user',
+                    'recipe',)
+    search_fields = ('user', 'recipe',)
+    empty_value_display = '-пусто-'
+
+
 admin.site.register(UnitOfMeasurement, UnitOfMeasurementAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(RecipeIngredient, RecipeIngredientAdmin)
 admin.site.register(RecipeTag, RecipeTagAdmin)
+admin.site.register(Favorites, FavoritesAdmin)
+admin.site.register(Follow, FollowAdmin)
+admin.site.register(ShoppingCart, ShoppingCartAdmin)
