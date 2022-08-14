@@ -10,7 +10,12 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', default='1111111111aaaaaaa')
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', '127.0.0.1', 'localhost', ]
+ALLOWED_HOSTS = [
+    '84.201.139.203',
+    '127.0.0.1',
+    'localhost',
+    'practyatube.sytes.net',
+]
 
 # if DEBUG:
 #     import socket
