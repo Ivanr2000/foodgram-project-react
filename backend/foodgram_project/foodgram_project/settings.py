@@ -11,9 +11,12 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', default='1111111111aaaaaaa')
 DEBUG = False
 
 ALLOWED_HOSTS = [
+    '0.0.0.0',
     '84.201.139.203',
     '127.0.0.1',
     'localhost',
+    'web',
+    'www.practyatube.sytes.net',
     'practyatube.sytes.net',
 ]
 
