@@ -15,7 +15,7 @@ class UnitOfMeasurement(models.Model):
     )
 
     class Meta:
-        ordering = ['-name']
+        ordering = ['name']
         verbose_name = 'Единица измерения'
         verbose_name_plural = 'Единицы измерения'
 
@@ -37,7 +37,7 @@ class Ingredient(models.Model):
     )
 
     class Meta:
-        ordering = ['-name']
+        ordering = ['name']
         constraints = [
             UniqueConstraint(
                 fields=['name', 'measurement_unit'], name='unique_UOM'
