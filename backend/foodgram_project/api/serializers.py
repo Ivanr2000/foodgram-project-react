@@ -3,10 +3,9 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from recipes.models import (
-    Favorites, Follow, Ingredient, Recipe, RecipeIngredient, ShoppingCart,
-    Tag, UnitOfMeasurement,
-)
+from recipes.models import (Favorites, Follow, Ingredient, Recipe,
+                            RecipeIngredient, ShoppingCart, Tag,
+                            UnitOfMeasurement)
 from users.models import CustomUser
 
 

@@ -7,19 +7,17 @@ from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-from recipes.models import (
-    Favorites, Follow, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
-)
+from recipes.models import (Favorites, Follow, Ingredient, Recipe,
+                            RecipeIngredient, ShoppingCart, Tag)
 from users.models import CustomUser
 
 from .filters import IngredientSearchFilter, RecipeFilter
 from .mixins import ListRetriveViewSet
 from .permissions import AdminOrReadOnly, AuthorAdminOrReadOnly
-from .serializers import (
-    AddRecipeSerializer, FavoritesSerializer, FollowSerializer,
-    IngredientSerializer, RecipeSerializer, ShoppingCartSerializer,
-    TagSerializer, UserSerializer
-)
+from .serializers import (AddRecipeSerializer, FavoritesSerializer,
+                          FollowSerializer, IngredientSerializer,
+                          RecipeSerializer, ShoppingCartSerializer,
+                          TagSerializer, UserSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -195,6 +193,7 @@ class UserSubscribeViewSet(viewsets.ModelViewSet):
             follow.delete()
 
             return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(
         detail=True,
