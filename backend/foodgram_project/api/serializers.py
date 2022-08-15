@@ -1,10 +1,12 @@
 from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
-from recipe.models import (Favorites, Follow, Ingredient, Recipe,
-                           RecipeIngredient, ShoppingCart, Tag,
-                           UnitOfMeasurement)
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
+
+from recipes.models import (
+    Favorites, Follow, Ingredient, Recipe, RecipeIngredient, ShoppingCart,
+    Tag, UnitOfMeasurement,
+)
 from users.models import CustomUser
 
 
@@ -17,13 +19,13 @@ class UnitOfMeasurementSerializer(serializers.ModelSerializer):
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = '__all__'
+        fields = ('id', 'name', 'color', 'slug',)
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
-        fields = 'id', 'name', 'image', 'cooking_time'
+        fields = ('id', 'name', 'image', 'cooking_time',)
         read_only_fields = '__all__',
 
 
@@ -38,7 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
             'username',
             'first_name',
             'last_name',
-            'is_subscribed'
+            'is_subscribed',
         )
         read_only_fields = 'is_subscribed',
 
@@ -82,7 +84,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = '__all__'
+        fields = ('id', 'name', 'measurement_unit',)
 
 
 class IngredientInReceipeSerializer(serializers.ModelSerializer):
@@ -94,7 +96,7 @@ class IngredientInReceipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'name', 'measurement_unit', 'amount')
+        fields = ('id', 'name', 'measurement_unit', 'amount',)
         validators = [
             UniqueTogetherValidator(
                 queryset=RecipeIngredient.objects.all(),
@@ -108,7 +110,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
     author = UserSerializer(read_only=True)
     ingredients = IngredientInReceipeSerializer(
-        source='recipeingredients',
+        source='recipe_ingredients',
         many=True,
         read_only=True,
     )
@@ -131,7 +133,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             'name',
             'image',
             'text',
-            'cooking_time'
+            'cooking_time',
         ]
 
     def get_is_favorited(self, obj):
@@ -254,7 +256,7 @@ class FollowSerializer(serializers.ModelSerializer):
 class FavoritesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorites
-        fields = ('user', 'recipe')
+        fields = ('user', 'recipe',)
         validators = (
             UniqueTogetherValidator(
                 queryset=Favorites.objects.all(),
@@ -276,7 +278,7 @@ class FavoritesSerializer(serializers.ModelSerializer):
 class ShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingCart
-        fields = ('user', 'recipe')
+        fields = ('user', 'recipe',)
         validators = (
             UniqueTogetherValidator(
                 queryset=ShoppingCart.objects.all(),

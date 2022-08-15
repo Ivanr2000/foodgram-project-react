@@ -8,8 +8,8 @@ username_validator = UnicodeUsernameValidator()
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("У пользователя должен быть указан адрес "
-                             "электронной почты")
+            raise ValueError('У пользователя должен быть указан адрес '
+                             'электронной почты')
 
         user = self.model(
             email=self.normalize_email(email),
@@ -68,6 +68,10 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.email
 
+# Методы ниже определяют и добавляют права пользователя.
+# Без них администратор становится безправным и ничего не видит,
+# легко можно проверить закоментировав их.
+
     def get_full_name(self):
         return f'{self.first_name}  {self.last_name}'
 
@@ -85,7 +89,3 @@ class CustomUser(AbstractUser):
 
     def has_module_perms(self, app_label):
         return True
-
-    @property
-    def is_admin(self):
-        return self.is_superuser

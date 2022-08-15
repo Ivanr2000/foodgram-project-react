@@ -2,21 +2,24 @@ import datetime
 
 from django.db.models import Sum
 from django.shortcuts import HttpResponse, get_object_or_404
-from recipe.models import (Favorites, Follow, Ingredient, Recipe,
-                           RecipeIngredient, ShoppingCart, Tag)
 from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework.views import APIView
+
+from recipes.models import (
+    Favorites, Follow, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
+)
 from users.models import CustomUser
 
 from .filters import IngredientSearchFilter, RecipeFilter
 from .mixins import ListRetriveViewSet
 from .permissions import AdminOrReadOnly, AuthorAdminOrReadOnly
-from .serializers import (AddRecipeSerializer, FavoritesSerializer,
-                          FollowSerializer, IngredientSerializer,
-                          RecipeSerializer, ShoppingCartSerializer,
-                          TagSerializer)
+from .serializers import (
+    AddRecipeSerializer, FavoritesSerializer, FollowSerializer,
+    IngredientSerializer, RecipeSerializer, ShoppingCartSerializer,
+    TagSerializer, UserSerializer
+)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -33,138 +36,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-
-class TagViewSet(ListRetriveViewSet):
-    serializer_class = TagSerializer
-    queryset = Tag.objects.all()
-    permission_classes = (AdminOrReadOnly,)
-    pagination_class = None
-
-
-class IngredientsViewSet(ListRetriveViewSet):
-    permission_classes = (AdminOrReadOnly,)
-    queryset = Ingredient.objects.all()
-    serializer_class = IngredientSerializer
-    filter_backends = (IngredientSearchFilter,)
-    search_fields = ('^name',)
-    pagination_class = None
-
-
-class SubscriptionsViewSet(viewsets.ModelViewSet):
-    """
-    Класс формирует ответы для эндпойнта со списком подписок - subscriptions.
-    """
-    queryset = Follow.objects.all()
-    permission_classes = (AuthorAdminOrReadOnly,)
-
-    def list(self, request):
-        user = request.user
-        queryset = Follow.objects.filter(user=user)
-        pages = self.paginate_queryset(queryset)
-        serializer = FollowSerializer(
-            pages,
-            many=True,
-            context={'request': request}
-        )
-        return self.get_paginated_response(serializer.data)
-
-
-class FollowFavoriteCartView(APIView):
-    """
-    Класс формирует ответы для эндпойнтов: подписки на пользователя -
-    subscribe (необходимо передать автора), избранных рецептов -
-    favorite (необходимо передать рецепт), и корзины покупок -
-    shopping_cart (необходимо передать рецепт). Ответ определяется исходя из
-    переданного пути. Класс реализует добавление объектов по указанным
-    эндпойнтам и их удаление.
-    """
-    permission_classes = (AuthorAdminOrReadOnly,)
-
-    URLSERIALIZERS = {
-        'subscribe': {
-            'serializer': FollowSerializer,
-            'follow_model': CustomUser,
-            'data': 'author',
-            'model_delete': Follow,
-        },
-        'favorite': {
-            'serializer': FavoritesSerializer,
-            'follow_model': Recipe,
-            'data': 'recipe',
-            'model_delete': Favorites,
-        },
-        'shopping_cart': {
-            'serializer': ShoppingCartSerializer,
-            'follow_model': Recipe,
-            'data': 'recipe',
-            'model_delete': ShoppingCart,
-        },
-    }
-
-    def post(self, request, id=None):
-        user = request.user
-        endpoint = request.get_full_path().split('/')[-2]
-        object_for_follow = get_object_or_404(
-            self.URLSERIALIZERS[endpoint]['follow_model'],
-            id=self.kwargs.get('id')
-        )
-        data = {
-            'user': user.id,
-            self.URLSERIALIZERS[endpoint]['data']: object_for_follow.id,
-        }
-        serializer = self.URLSERIALIZERS[endpoint]['serializer'](
-            data=data, context={'request': request}
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def delete(self, request, id=None):
-        user = request.user
-        endpoint = request.get_full_path().split('/')[-2]
-        following_object = get_object_or_404(
-            self.URLSERIALIZERS[endpoint]['follow_model'],
-            id=self.kwargs.get('id')
-        )
-
-        if endpoint == 'subscribe':
-            if user == following_object:
-                return Response({
-                    'errors': 'Вы не можете отписываться от самого себя'
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            object_for_deletion = get_object_or_404(
-                self.URLSERIALIZERS[endpoint]['model_delete'],
-                user=user,
-                author=following_object
-            )
-        else:
-            object_for_deletion = get_object_or_404(
-                self.URLSERIALIZERS[endpoint]['model_delete'],
-                user=user,
-                recipe=following_object
-            )
-        object_for_deletion.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class DownloadShoppingCart(APIView):
-    """
-    Класс формирует ответы для эндпойнта - download_shopping_cart. Сумирует
-    все одинаковые ингредиенты и выводит их в файл формата txt. На текущий
-    момент после вывода списка корзина покупок неопустошается, так как
-    фронтенд не поддерживает запрос подтверждения удаления позиций из корзины.
-    """
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def get(self, request):
+    @action(
+        methods=['get'],
+        detail=False,
+        permission_classes=[permissions.IsAuthenticated, ],
+    )
+    def download_shopping_cart(self, request):
         user = request.user
         shopping_cart = {}
 
         ingredients = RecipeIngredient.objects.filter(
-            recipe__shoppingcarts__user=user
+            recipe__shopping_carts__user=user
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit_id__name'
@@ -180,15 +62,14 @@ class DownloadShoppingCart(APIView):
                 ]
             }
 
-        shopping_list = [
-            'Список покупок сформирован с помощью проекта Foodgram\n']
-        shopping_list.append(
+        shopping_list = (
+            'Список покупок сформирован с помощью проекта Foodgram\n'
             'Дата формирования списка: '
             f'{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}\n\n'
         )
 
         for ingredient, value in shopping_cart.items():
-            shopping_list.append(
+            shopping_list = shopping_list + (
                 f' {ingredient} - {value["amount"]} '
                 f'{value["measurement_unit"]}\n'
             )
@@ -197,3 +78,137 @@ class DownloadShoppingCart(APIView):
             'Content-Type': 'text/plain',
             'Content-Disposition': 'attachment; filename="shopping_list.txt"',
         })
+
+    @action(
+        detail=True,
+        methods=['POST', 'DELETE'],
+        permission_classes=[permissions.IsAuthenticatedOrReadOnly, ],
+    )
+    def favorite(self, request, pk=None):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        user = request.user
+        if request.method == 'POST':
+            data = {
+                'user': user.id,
+                'recipe': recipe.id,
+            }
+            serializer = FavoritesSerializer(
+                data=data, context={'request': request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            Favorites.objects.filter(
+                user=user,
+                recipe=recipe
+            ).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        detail=True,
+        methods=['POST', 'DELETE'],
+        permission_classes=[permissions.IsAuthenticatedOrReadOnly, ]
+    )
+    def shopping_cart(self, request, pk=None):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        user = request.user
+        if request.method == 'POST':
+            data = {
+                'user': user.id,
+                'recipe': recipe.id,
+            }
+            serializer = ShoppingCartSerializer(
+                data=data, context={'request': request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            ShoppingCart.objects.filter(
+                user=user, recipe=recipe
+            ).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class TagViewSet(ListRetriveViewSet):
+    serializer_class = TagSerializer
+    queryset = Tag.objects.all()
+    permission_classes = (AdminOrReadOnly,)
+    # Отключает пагинацию на данный класс, так как по умолчанию включена в
+    # сеттингс для всего проекта. Если не отключить, то из-за пагинации не
+    # работает корректно создание рецептов. Также и для ингредиентов.
+    pagination_class = None
+
+
+class IngredientsViewSet(ListRetriveViewSet):
+    permission_classes = (AdminOrReadOnly,)
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+    filter_backends = (IngredientSearchFilter,)
+    search_fields = ('^name',)
+    pagination_class = None
+
+
+class UserSubscribeViewSet(viewsets.ModelViewSet):
+    permission_classes = (AuthorAdminOrReadOnly,)
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+
+    @action(
+        detail=True,
+        methods=['POST', 'DELETE'],
+        permission_classes=[permissions.IsAuthenticated, ]
+    )
+    def subscribe(self, request, pk=None):
+        user = request.user
+        author = get_object_or_404(CustomUser, pk=pk)
+
+        if request.method == 'POST':
+            data = {
+                'user': user.id,
+                'author': author.id,
+            }
+            serializer = FollowSerializer(
+                data=data, context={'request': request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            if user == author:
+                return Response({
+                    'errors': 'Вы не можете отписываться от самого себя'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            follow = get_object_or_404(
+                Follow, user=user, author=author
+            )
+            follow.delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True,
+        methods=['GET', ],
+        permission_classes=[permissions.IsAuthenticated, ],
+        url_path='subscriptions'
+    )
+    def subscriptions(self, request):
+        user = request.user
+        queryset = Follow.objects.filter(user=user)
+        pages = self.paginate_queryset(queryset)
+        serializer = FollowSerializer(
+            pages,
+            many=True,
+            context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)

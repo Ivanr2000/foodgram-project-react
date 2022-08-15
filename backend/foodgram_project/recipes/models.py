@@ -20,7 +20,7 @@ class UnitOfMeasurement(models.Model):
         verbose_name_plural = 'Единицы измерения'
 
     def __str__(self):
-        return "%s" % (self.name)
+        return f'{self.name}'
 
 
 class Ingredient(models.Model):
@@ -56,6 +56,8 @@ class Ingredient(models.Model):
 class Tag(models.Model):
     name = models.CharField(
         'Тэг',
+        # Может быть и много, но так прописано в спецификации на API. Длина
+        # <=200 символов, как и для slug.
         max_length=200,
         db_index=True,
         unique=True,
@@ -127,13 +129,13 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         'Recipe',
         on_delete=models.CASCADE,
-        related_name='recipeingredients',
+        related_name='recipe_ingredients',
         verbose_name='Рецепт'
     )
     ingredient = models.ForeignKey(
         'Ingredient',
         on_delete=models.CASCADE,
-        related_name='recipeingredients',
+        related_name='recipe_ingredients',
         verbose_name='Ингредиент'
     )
     amount = models.PositiveIntegerField('Вес')
@@ -155,13 +157,13 @@ class RecipeTag(models.Model):
     recipe = models.ForeignKey(
         'Recipe',
         on_delete=models.CASCADE,
-        related_name='recipetags',
+        related_name='recipe_tags',
         verbose_name='Рецепт'
     )
     tag = models.ForeignKey(
         'Tag',
         on_delete=models.CASCADE,
-        related_name='recipetags',
+        related_name='recipe_tags',
         verbose_name='Теги'
     )
 
@@ -210,13 +212,13 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='shoppingcarts',
+        related_name='shopping_carts',
         verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='shoppingcarts',
+        related_name='shopping_carts',
         verbose_name='Рецепт',
     )
 

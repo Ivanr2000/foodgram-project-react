@@ -1,9 +1,11 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 
 from .models import CustomUser
 
 
-class CustomUserAdmin(admin.ModelAdmin):
+@admin.register(CustomUser)
+class CustomUserAdmin(UserAdmin):
     list_display = ('pk',
                     'username',
                     'first_name',
@@ -17,6 +19,3 @@ class CustomUserAdmin(admin.ModelAdmin):
 
     class Meta:
         proxy = True
-
-
-admin.site.register(CustomUser, CustomUserAdmin)

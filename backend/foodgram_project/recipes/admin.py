@@ -1,9 +1,12 @@
 from django.contrib import admin
 
-from .models import (Favorites, Follow, Ingredient, Recipe, RecipeIngredient,
-                     RecipeTag, ShoppingCart, Tag, UnitOfMeasurement)
+from .models import (
+    Favorites, Follow, Ingredient, Recipe, RecipeIngredient, RecipeTag,
+    ShoppingCart, Tag, UnitOfMeasurement,
+)
 
 
+@admin.register(UnitOfMeasurement)
 class UnitOfMeasurementAdmin(admin.ModelAdmin):
     list_display = ('pk',
                     'name',)
@@ -11,6 +14,7 @@ class UnitOfMeasurementAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+@admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('pk',
                     'name',
@@ -20,6 +24,7 @@ class IngredientAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+@admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('pk',
                     'name',
@@ -40,6 +45,7 @@ class TagsInline(admin.TabularInline):
     extra = 3
 
 
+@admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     inlines = (IngredientsInline, TagsInline,)
     list_display = ('pk',
@@ -56,7 +62,10 @@ class RecipeAdmin(admin.ModelAdmin):
     def favorites_count(self, obj):
         return obj.favorites.count()
 
+    favorites_count.short_description = 'Включений в избранное'
 
+
+@admin.register(RecipeIngredient)
 class RecipeIngredientAdmin(admin.ModelAdmin):
     list_display = ('pk',
                     'recipe',
@@ -67,6 +76,7 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+@admin.register(RecipeTag)
 class RecipeTagAdmin(admin.ModelAdmin):
     list_display = ('pk',
                     'recipe',
@@ -75,6 +85,7 @@ class RecipeTagAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+@admin.register(Favorites)
 class FavoritesAdmin(admin.ModelAdmin):
     list_display = ('pk',
                     'user',
@@ -83,6 +94,7 @@ class FavoritesAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+@admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
     list_display = ('pk',
                     'user',
@@ -91,20 +103,10 @@ class FollowAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
+@admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = ('pk',
                     'user',
                     'recipe',)
     search_fields = ('user', 'recipe',)
     empty_value_display = '-пусто-'
-
-
-admin.site.register(UnitOfMeasurement, UnitOfMeasurementAdmin)
-admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(Tag, TagAdmin)
-admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(RecipeIngredient, RecipeIngredientAdmin)
-admin.site.register(RecipeTag, RecipeTagAdmin)
-admin.site.register(Favorites, FavoritesAdmin)
-admin.site.register(Follow, FollowAdmin)
-admin.site.register(ShoppingCart, ShoppingCartAdmin)
