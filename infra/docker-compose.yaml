@@ -13,7 +13,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     volumes:
-      - ../frontend/:/app/result_build/
+      - ./frontend/:/app/result_build/
 
   web:
     build: ../backend/foodgram_project
