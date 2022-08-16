@@ -4,6 +4,7 @@ from .models import (
     Favorites, Follow, Ingredient, Recipe, RecipeIngredient,
     RecipeTag, ShoppingCart, Tag, UnitOfMeasurement,
 )
+
 # Я и приводил к код стайлу Джанго, только isort который запустил в конце с
 # ним не согласен и все исправил и flake8 тоже не очень с ним согласен
 
