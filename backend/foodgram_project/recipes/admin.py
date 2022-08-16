@@ -5,9 +5,6 @@ from .models import (
     RecipeTag, ShoppingCart, Tag, UnitOfMeasurement,
 )
 
-# Я и приводил к код стайлу Джанго, только isort который запустил в конце с
-# ним не согласен и все исправил и flake8 тоже не очень с ним согласен
-
 
 @admin.register(UnitOfMeasurement)
 class UnitOfMeasurementAdmin(admin.ModelAdmin):

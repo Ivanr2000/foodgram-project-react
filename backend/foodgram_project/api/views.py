@@ -13,7 +13,6 @@ from recipes.models import (
     Favorites, Follow, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
 )
 from users.models import CustomUser
-
 from .filters import IngredientSearchFilter, RecipeFilter
 from .mixins import ListRetriveViewSet
 from .permissions import AdminOrReadOnly, AuthorAdminOrReadOnly
