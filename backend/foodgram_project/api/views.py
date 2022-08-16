@@ -4,20 +4,24 @@ from django.db.models import Sum
 from django.shortcuts import HttpResponse, get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import (
+    LimitOffsetPagination, PageNumberPagination,
+)
 from rest_framework.response import Response
 
-from recipes.models import (Favorites, Follow, Ingredient, Recipe,
-                            RecipeIngredient, ShoppingCart, Tag)
+from recipes.models import (
+    Favorites, Follow, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
+)
 from users.models import CustomUser
 
 from .filters import IngredientSearchFilter, RecipeFilter
 from .mixins import ListRetriveViewSet
 from .permissions import AdminOrReadOnly, AuthorAdminOrReadOnly
-from .serializers import (AddRecipeSerializer, FavoritesSerializer,
-                          FollowSerializer, IngredientSerializer,
-                          RecipeSerializer, ShoppingCartSerializer,
-                          TagSerializer, UserSerializer)
+from .serializers import (
+    AddRecipeSerializer, FavoritesSerializer, FollowSerializer,
+    IngredientSerializer, RecipeSerializer, ShoppingCartSerializer,
+    TagSerializer, UserSerializer,
+)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -60,10 +64,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 ]
             }
 
+        current_date = datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
         shopping_list = (
             'Список покупок сформирован с помощью проекта Foodgram\n'
-            'Дата формирования списка: '
-            f'{datetime.datetime.now().strftime("%d-%m-%Y %H:%M")}\n\n'
+            f'Дата формирования списка: {current_date}\n\n'
         )
 
         for ingredient, value in shopping_cart.items():
@@ -98,13 +102,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        if request.method == 'DELETE':
-            Favorites.objects.filter(
-                user=user,
-                recipe=recipe
-            ).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        Favorites.objects.filter(
+            user=user,
+            recipe=recipe
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
@@ -127,22 +129,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        if request.method == 'DELETE':
-            ShoppingCart.objects.filter(
-                user=user, recipe=recipe
-            ).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        ShoppingCart.objects.filter(
+            user=user, recipe=recipe
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TagViewSet(ListRetriveViewSet):
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
     permission_classes = (AdminOrReadOnly,)
-    # Отключает пагинацию на данный класс, так как по умолчанию включена в
-    # сеттингс для всего проекта. Если не отключить, то из-за пагинации не
-    # работает корректно создание рецептов. Также и для ингредиентов.
-    pagination_class = None
 
 
 class IngredientsViewSet(ListRetriveViewSet):
@@ -151,13 +147,13 @@ class IngredientsViewSet(ListRetriveViewSet):
     serializer_class = IngredientSerializer
     filter_backends = (IngredientSearchFilter,)
     search_fields = ('^name',)
-    pagination_class = None
 
 
 class UserSubscribeViewSet(viewsets.ModelViewSet):
     permission_classes = (AuthorAdminOrReadOnly,)
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
+    pagination_class = LimitOffsetPagination
 
     @action(
         detail=True,
@@ -181,19 +177,17 @@ class UserSubscribeViewSet(viewsets.ModelViewSet):
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        if request.method == 'DELETE':
-            if user == author:
-                return Response({
-                    'errors': 'Вы не можете отписываться от самого себя'
-                }, status=status.HTTP_400_BAD_REQUEST)
+        if user == author:
+            return Response({
+                'errors': 'Вы не можете отписываться от самого себя'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-            follow = get_object_or_404(
-                Follow, user=user, author=author
-            )
-            follow.delete()
+        follow = get_object_or_404(
+            Follow, user=user, author=author
+        )
+        follow.delete()
 
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,

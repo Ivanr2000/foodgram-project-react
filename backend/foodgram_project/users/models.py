@@ -68,10 +68,6 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.email
 
-# Методы ниже определяют и добавляют права пользователя.
-# Без них администратор становится безправным и ничего не видит,
-# легко можно проверить закоментировав их.
-
     def get_full_name(self):
         return f'{self.first_name}  {self.last_name}'
 

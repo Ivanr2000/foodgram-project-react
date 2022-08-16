@@ -3,6 +3,7 @@ services:
 
   db:
     image: postgres:13.0-alpine
+    restart: always
     volumes:
       - /var/lib/postgresql/data/
     env_file:
@@ -18,8 +19,6 @@ services:
   web:
     build: ../backend/foodgram_project
     restart: always
-    ports:
-      - "8000:8000"
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -30,6 +29,7 @@ services:
 
   nginx:
     image: nginx:1.19.3
+    restart: always
     ports:
       - "80:80"
     volumes:

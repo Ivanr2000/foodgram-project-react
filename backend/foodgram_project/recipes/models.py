@@ -56,8 +56,6 @@ class Ingredient(models.Model):
 class Tag(models.Model):
     name = models.CharField(
         'Тэг',
-        # Может быть и много, но так прописано в спецификации на API. Длина
-        # <=200 символов, как и для slug.
         max_length=200,
         db_index=True,
         unique=True,
